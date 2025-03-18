@@ -19,17 +19,6 @@
 /*.bat
 /publish.local.cmd
 /libs/
-client/dist
-client/.tmp
-client/.sass-cache
-#client/bower_components
-client/node_modules
-ui/node_modules
-client/app/scripts/populate_template_cache.js
-**/.sass-cache
-**/.DS_Store
-npm-debug.log
-odkl_pts_*.dat
 .vscode
 /.gradle/
 /package-lock.json
