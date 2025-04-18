@@ -10,10 +10,12 @@ import org.springframework.stereotype.Component;
 
 import ok.admin.common.pms.PmsComponent;
 import ok.admin.common.pms.PmsProperty;
+import ok.admin.common.pms.PmsUpdateRequest;
 import ok.admin.rest.component.pms.PmsConfig;
 import ok.admin.rest.component.pms.PmsFactory;
 import ok.admin.rest.component.portlet.config.PortletManagerPmsConfiguration;
 import one.ejb.NotNull;
+import one.util.streamex.EntryStream;
 
 /**
  * класс для чтения и обновления настроек портлетных конфигов
@@ -58,6 +60,22 @@ public class PortletManagerBot {
 
         result = allProperties.get(portletManagerPmsConfiguration.commonHost());
         return result == null ? "" : result.getPropertyValue();
+    }
+
+    public void updatePmsProperty(@NotNull String host, @NotNull String propertyName, @NotNull String value) {
+        Map<String, PmsProperty> read = getPmsProperty(propertyName);
+        Map<String, Long> updates = EntryStream
+                .of(read)
+                .mapValues(PmsProperty::getUpdateId)
+                .toMap();
+        PmsUpdateRequest request = new PmsUpdateRequest(
+                portletManagerPmsConfiguration.applicationName(),
+                host,
+                propertyName,
+                value,
+                updates.getOrDefault(host, 0L)
+        );
+        pmsComponent.createOrUpdate(request, portletManagerPmsConfiguration.username(), portletManagerPmsConfiguration.password());
     }
 
     @NotNull

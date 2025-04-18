@@ -1,0 +1,1 @@
+export * from './ui/portlet-config-create-form'

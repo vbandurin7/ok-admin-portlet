@@ -1,9 +1,10 @@
 package ok.admin.portlet;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,13 +35,13 @@ public class InserterConfigProcessor {
     }
 
     @NotNull
-    public List<String> getEnabledConfigsByUser(long userId, @NotNull String host, @NotNull PmsProperty resolverConfig) {
+    public Set<String> getEnabledConfigsByUser(long userId, @NotNull String host, @NotNull PmsProperty resolverConfig) {
         Validate.notNull(host, "cannot retrieve enabled configs if host is null");
         Validate.notNull(resolverConfig, "cannot retrieve enabled configs from null");
 
         String propertyValue = injectExtProperties(host, resolverConfig.getPropertyValue());
         List<PortletConfigResolverConfiguration> resolverConfigs = resolverParser.convert(propertyValue);
-        List<String> result = new ArrayList<>();
+        Set<String> result = new HashSet<>();
 
         for (PortletConfigResolverConfiguration config : resolverConfigs) {
             if (config.getEnabledIds().isEnabled(userId)) {
@@ -49,6 +50,15 @@ public class InserterConfigProcessor {
         }
 
         return result;
+    }
+
+    @NotNull
+    public List<PortletConfigResolverConfiguration> getAllResolverConfigs(@NotNull String host, @NotNull String resolverConfig) {
+        Validate.notNull(host, "cannot retrieve enabled configs if host is null");
+        Validate.notNull(resolverConfig, "cannot retrieve enabled configs from null");
+
+        String propertyValue = injectExtProperties(host, resolverConfig);
+        return resolverParser.convert(propertyValue);
     }
 
     /**

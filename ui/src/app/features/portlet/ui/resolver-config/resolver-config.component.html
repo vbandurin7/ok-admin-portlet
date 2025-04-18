@@ -1,0 +1,30 @@
+<!-- resolver-config.component.html -->
+<form [formGroup]="resolverForm" (ngSubmit)="getResolverConfigs()" class="form-horizontal">
+    <div class="form-group">
+        <label for="userId" class="col-sm-12">Введите userId:</label>
+        <div class="col-sm-12">
+            <input
+                formControlName="userId"
+                id="userId"
+                type="number"
+                class="form-control"
+                placeholder="userId"
+                required
+            />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-sm-12 text-center">
+            <button type="submit" class="btn btn-primary" [disabled]="resolverForm.invalid">
+                Получить конфиги
+            </button>
+        </div>
+    </div>
+</form>
+
+<!-- Здесь показываем результат запроса -->
+<div *ngIf="resolverConfigs">
+    <h3>Конфиги для пользователя {{ resolverForm.value.userId }}:</h3>
+    <pre>{{ resolverConfigs | json }}</pre>
+</div>

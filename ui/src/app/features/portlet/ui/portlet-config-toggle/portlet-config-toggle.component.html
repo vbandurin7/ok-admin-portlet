@@ -1,0 +1,64 @@
+<form [formGroup]="toggleConfigForm" class="form-horizontal">
+    <div class="form-group">
+        <label for="userId" class="col-sm-12">User ID:</label>
+        <div class="col-sm-12">
+            <input
+                formControlName="userId"
+                id="userId"
+                type="number"
+                class="form-control"
+                placeholder="Введите User ID"
+                required
+            />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="host" class="col-sm-12">Host:</label>
+        <div class="col-sm-12">
+            <input
+                formControlName="host"
+                id="host"
+                type="text"
+                class="form-control"
+                placeholder="Введите Host"
+                required
+            />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="configName" class="col-sm-12">Config Name:</label>
+        <div class="col-sm-12">
+            <input
+                formControlName="configName"
+                id="configName"
+                type="text"
+                class="form-control"
+                placeholder="Введите имя конфига"
+                required
+            />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-sm-12 text-center">
+            <button
+                type="button"
+                class="btn btn-success"
+                [disabled]="toggleConfigForm.invalid"
+                (click)="enableConfig()"
+            >
+                Включить конфиг
+            </button>
+            <button
+                type="button"
+                class="btn btn-danger"
+                [disabled]="toggleConfigForm.invalid"
+                (click)="disableConfig()"
+            >
+                Выключить конфиг
+            </button>
+        </div>
+    </div>
+</form>
