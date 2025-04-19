@@ -1,21 +1,23 @@
-package ok.admin.portlet.druid;
+package ok.admin.rest.component.portlet.druid;
 
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import io.druid.query.aggregation.AggregatorFactory;
+import ru.ok.druid.client.DruidClient;
 import io.druid.query.Druids;
 import io.druid.query.Result;
-import io.druid.query.aggregation.CountAggregatorFactory;
-import io.druid.query.filter.DimFilters;
+import io.druid.query.filter.DimFilter;
 import io.druid.query.timeseries.TimeseriesQuery;
 import io.druid.query.timeseries.TimeseriesResultValue;
-import ru.ok.druid.client.DruidClient;
+import ru.ok.druid.client.DruidException;
 import ru.ok.druid.client.util.OkQueryUtil;
 
 @Component
 public class DruidDataLoader {
+    private static final String TABLE = "TABLE_NAME";
 
     private final DruidClient druidClient;
 
@@ -25,28 +27,14 @@ public class DruidDataLoader {
         this.druidClient = druidClient;
     }
 
-    public void makeQuery() {
+    public List<Result<TimeseriesResultValue>> fetchMetrics(String interval, DimFilter dimFilter, List<AggregatorFactory> aggregators) throws DruidException {
         TimeseriesQuery query = Druids.newTimeseriesQueryBuilder()
-                .dataSource("FeedFeatureOperationsDruid")
-                .intervals("2025-04-16T00:00:00.000Z/2025-04-17T00:00:00.000Z")
-                .filters(
-                        DimFilters.and(
-                                DimFilters.regex("Operation", ".*show.*"),
-                                DimFilters.dimEquals("Type", "131"),
-                                DimFilters.regex("Partition", "1", "2", "3", "4")
-                        )
-                )
-                .aggregators(List.of(
-                        new CountAggregatorFactory("total_shows", null, "long")  // Используем нужный конструктор
-                ))
+                .dataSource(TABLE)
+                .intervals(interval)
+                .filters(dimFilter)
+                .aggregators(aggregators)
                 .granularity(OkQueryUtil.GRANULARITY_5MIN)
                 .build();
-        List<Result<TimeseriesResultValue>> results;
-        try {
-            results = druidClient.queryTimeseries(query);
-        } catch (Exception e) {
-            int b = 1;
-        }
-        int a = 123;
+        return druidClient.queryTimeseries(query);
     }
 }
