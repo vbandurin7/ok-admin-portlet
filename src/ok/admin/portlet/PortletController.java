@@ -39,7 +39,6 @@ public class PortletController {
 
     @JsonRequestMapping("/resolver/configs/{user-id}")
     public BaseResponse getResolverConfigsByUser(@PathVariable("user-id") Long userId) {
-        dataLoader.makeQuery();
         if (userId == null) {
             return ErrorResponse.of("Null user ID", "incorrect-id");
         }
