@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -27,6 +28,7 @@ import ok.admin.rest.component.portlet.model.PortletByPosition;
 import ok.admin.rest.component.portlet.model.PortletConfigRequest;
 import one.app.community.conf.AbstractResolverConfiguration;
 import one.app.community.control.ejb.feed.portlets.inserter.config.PortletConfigResolverConfiguration;
+import one.conf.converter.ConverterEnabledIds;
 import one.util.StringUtil;
 
 @Component
@@ -68,12 +70,12 @@ public class PortletService {
 
     public String generateFeedPortletConfig(String host, String configName, PortletConfigRequest portletConfigRequest) {
         NavigableMap<Integer, PortletByPosition> portletsByPosition = PortletConfigGenerator.generateConfig(portletConfigRequest.getPortlets());
-        String portletInserterConfig = PortletConfigGenerator.serializeToString(portletsByPosition);
+        String portletInserterConfig = PortletConfigGenerator.serializeToString(portletsByPosition, portletConfigRequest.getPlatformTypes());
         updateOrCreateInserterConfig(host, configName, portletInserterConfig);
         return portletInserterConfig;
     }
 
-    public void enableInserterConfig(long userId, String host, String inserterConfigToEnable) {
+    public String enableInserterConfig(long userId, String host, String inserterConfigToEnable) {
         String inserterConfig = getInserterConfig(host, inserterConfigToEnable, PlatformType.ALL);
         if (inserterConfig == null) {
             throw new ConfigurationNotFoundException("Inserter config [host=" + host + "; config=" + inserterConfigToEnable + "; not found");
@@ -81,15 +83,15 @@ public class PortletService {
 
         String resolvers = inserterConfigProcessor.injectExtProperties(host, bot.getConfigByHost(host, getResolverProperties()));
         if (StringUtil.isEmpty(resolvers)) {
-            updateOrCreateResolverConfig(host, startInsert(resolvers, userId, inserterConfigToEnable));
-            return;
+            updateOrCreateResolverConfig(host, insertAtTop(resolvers, userId, inserterConfigToEnable));
+            return inserterConfigToEnable;
         }
         List<PortletConfigResolverConfiguration> allConfigs = inserterConfigProcessor.getAllResolverConfigs(host, resolvers);
         for (PortletConfigResolverConfiguration config : allConfigs) {
             if (config.getEnabledIds().isEnabled(userId)) {
                 if (config.getKey().equals(inserterConfigToEnable)) {
                     // конфиг уже включен
-                    return;
+                    return inserterConfigToEnable;
                 }
 
                 // запрашиваемый конфиг не первый включенный => надо сгенерировать новый и включить
@@ -97,61 +99,67 @@ public class PortletService {
                         .map(AbstractResolverConfiguration::getKey)
                         .collect(Collectors.toCollection(HashSet::new));
                 String finalInserterConfigName = getNextConfigName(inserterConfigToEnable, resolverConfigKeys);
-                // todo: maybe add exception handling
+                // todo: add exception handling
                 updateOrCreateInserterConfig(host, finalInserterConfigName, inserterConfig);
-                updateOrCreateResolverConfig(host, startInsert(resolvers, userId, finalInserterConfigName));
-                return;
+                updateOrCreateResolverConfig(host, insertAtTop(resolvers, userId, finalInserterConfigName));
+                return finalInserterConfigName;
             }
 
             // До этого момента не включен ни один конфиг, можно просто прописать userId.
             if (config.getKey().equals(inserterConfigToEnable)) {
-                updateOrCreateResolverConfig(host, middleInsert(resolvers, userId, inserterConfigToEnable));
-                return;
+                updateOrCreateResolverConfig(host, insertInline(resolvers, userId, inserterConfigToEnable));
+                return inserterConfigToEnable;
             }
         }
         // на пользователя ничего не включено и конфига не существует
-        updateOrCreateResolverConfig(host, startInsert(resolvers, userId, inserterConfigToEnable));
+        updateOrCreateResolverConfig(host, insertAtTop(resolvers, userId, inserterConfigToEnable));
+        return inserterConfigToEnable;
     }
 
 
     public void disableInserterConfig(long userId, String host, String inserterConfigName) {
         String resolvers = inserterConfigProcessor.injectExtProperties(host, bot.getConfigByHost(host, getResolverProperties()));
         if (StringUtil.isEmpty(resolvers)) {
-            return; // todo: it's ok but wanna readable response
+            return;
         }
 
         String resolverPrefix = "key." + inserterConfigName + "=";
-        String[] resolverLines = resolvers.split(System.lineSeparator());
-        for (int i = 0; i < resolverLines.length; i++) {
-            if (!resolverLines[i].startsWith(resolverPrefix)) {
+        String[] resolverConfigs = resolvers.split(System.lineSeparator());
+        for (int i = 0; i < resolverConfigs.length; i++) {
+            if (!resolverConfigs[i].startsWith(resolverPrefix)) {
                 continue;
             }
-            String enabledIds = resolverLines[i].split("=")[1];
+            String enabledIds = resolverConfigs[i].split("=")[1];
+            if (!ConverterEnabledIds.INSTANCE.convert(enabledIds).isEnabled(userId)) {
+                break;
+            }
             if (enabledIds.contains(Long.toString(userId))) {
                 String[] idsArray = enabledIds.split(",");
                 if (idsArray.length == 1) {
-                    resolverLines[i] = "";
+                    resolverConfigs[i] = null;
                     break;
                 }
                 enabledIds = Arrays.stream(idsArray)
                         .filter(id -> id.equals(Long.toString(userId)))
                         .collect(Collectors.joining(","));
+            } else {
+                enabledIds += ",-ID:" + userId;
             }
-            resolverLines[i] = resolverPrefix + enabledIds;
+            resolverConfigs[i] = resolverPrefix + enabledIds;
             break;
         }
-        String resultResolvers = Arrays.stream(resolverLines).collect(Collectors.joining(System.lineSeparator()));
+        String resultResolvers = Arrays.stream(resolverConfigs).filter(Objects::nonNull).collect(Collectors.joining(System.lineSeparator()));
         updateOrCreateResolverConfig(host, resultResolvers);
     }
 
-    private static String startInsert(String resolversConfig, long userId, String inserterConfigToEnable) {
+    private static String insertAtTop(String resolversConfig, long userId, String inserterConfigToEnable) {
         StringBuilder sb = new StringBuilder(resolversConfig);
-        int firstResolver = sb.indexOf("key.");
+        int firstResolver = Math.max(0, sb.indexOf("key."));
         sb.insert(firstResolver, "key." + inserterConfigToEnable + "=" + userId + System.lineSeparator());
         return sb.toString();
     }
 
-    private static String middleInsert(String resolversConfig, long userId, String inserterConfigToEnable) {
+    private static String insertInline(String resolversConfig, long userId, String inserterConfigToEnable) {
         StringBuilder sb = new StringBuilder(resolversConfig);
         String resolverPrefix = "key." + inserterConfigToEnable + "=";
         int resolverToAppendPosition = sb.indexOf(resolverPrefix);
@@ -220,10 +228,6 @@ public class PortletService {
 
     private Map<String, PmsProperty> getResolverProperties() {
         return bot.getPmsProperty(portletManagerPmsConfiguration.resolverConfigsPropertyName());
-    }
-
-    private Map<String, PmsProperty> getLastSeenTargeting() {
-        return bot.getPmsProperty(portletManagerPmsConfiguration.lastSeenTargetingPropertyName());
     }
 
     private String getFullInserterConfigName(String configName) {

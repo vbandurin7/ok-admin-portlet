@@ -8,6 +8,7 @@ import java.util.TreeMap;
 
 import ok.admin.rest.component.portlet.model.Candidate;
 import ok.admin.rest.component.portlet.model.FeedPortletConfig;
+import ok.admin.rest.component.portlet.model.PlatformType;
 import ok.admin.rest.component.portlet.model.PortletByPosition;
 import ok.admin.rest.component.portlet.model.PortletConfigEntry;
 import one.app.community.control.ejb.feed.portlets.inserter.PortletCategory;
@@ -41,8 +42,8 @@ public class PortletConfigGenerator {
         return portletsByPosition;
     }
 
-    public static String serializeToString(NavigableMap<Integer, PortletByPosition> portletsByPosition) {
-        FeedPortletConfig portletConfig = new FeedPortletConfig(portletsByPosition);
+    public static String serializeToString(NavigableMap<Integer, PortletByPosition> portletsByPosition, List<PlatformType> platformTypes) {
+        FeedPortletConfig portletConfig = new FeedPortletConfig(portletsByPosition, platformTypes);
         return portletConfig.toString();
     }
 }

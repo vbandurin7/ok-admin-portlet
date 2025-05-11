@@ -1,7 +1,7 @@
 package ok.admin.portlet;
 
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -19,6 +19,7 @@ import one.app.community.control.ejb.feed.portlets.inserter.config.PortletConfig
 import one.conf.IConfiguration;
 import one.conf.dynamic.ConfigurationException;
 import one.ejb.NotNull;
+import one.ejb.Nullable;
 
 @Component
 public class InserterConfigProcessor {
@@ -41,7 +42,7 @@ public class InserterConfigProcessor {
 
         String propertyValue = injectExtProperties(host, resolverConfig.getPropertyValue());
         List<PortletConfigResolverConfiguration> resolverConfigs = resolverParser.convert(propertyValue);
-        Set<String> result = new HashSet<>();
+        Set<String> result = new LinkedHashSet<>();
 
         for (PortletConfigResolverConfiguration config : resolverConfigs) {
             if (config.getEnabledIds().isEnabled(userId)) {
@@ -72,23 +73,26 @@ public class InserterConfigProcessor {
         // кэш для плейсхолдеров, чтобы не делать каждый раз запрос в пмс
         // key = propertyName
         HashMap<String, String> pmsPropertyCache = new HashMap<>();
-        return injectInternal(hostName, pmsPropertyValue, pmsPropertyCache);
+        return injectInternal(null, hostName, pmsPropertyValue, pmsPropertyCache);
     }
 
     @NotNull
-    private String injectInternal(@NotNull String hostName, @NotNull String pmsPropertyValue, @NotNull Map<String, String> pmsPropertyCache) {
+    private String injectInternal(@Nullable String from, @NotNull String hostName, @NotNull String pmsPropertyValue, @NotNull Map<String, String> pmsPropertyCache) {
         Matcher matcher = EXP_PROPERTY_PATTERN.matcher(pmsPropertyValue);
         StringBuilder result = new StringBuilder();
 
         while (matcher.find()) {
-            String key = matcher.group(1);  // Извлекаем ключ
+            String key = matcher.group(1);
             String replacement = pmsPropertyCache.get(key);
             if (replacement == null) {
                 Map<String, PmsProperty> injects = bot.getPmsProperty(key);
                 replacement = bot.getConfigByHost(hostName, injects);
                 pmsPropertyCache.put(key, replacement);
             }
-            replacement = injectInternal(hostName, replacement, pmsPropertyCache);
+            if (from != null && replacement.contains(from) && pmsPropertyCache.containsKey(key)) {
+                throw new IllegalArgumentException("Failed to inject properties because of infinite recursion for properties " + from + " and " +  key);
+            }
+            replacement = injectInternal(key, hostName, replacement, pmsPropertyCache);
 
             matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
         }

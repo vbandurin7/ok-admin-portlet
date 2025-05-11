@@ -12,16 +12,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ok.admin.rest.annotation.JsonRequestMapping;
 import ok.admin.rest.annotation.RequirePermissions;
-import ok.admin.rest.component.portlet.druid.DruidDataLoader;
 import ok.admin.rest.component.portlet.exception.ConfigurationNotFoundException;
 import ok.admin.rest.component.portlet.model.PlatformType;
 import ok.admin.rest.component.portlet.model.PortletConfigRequest;
+import ok.admin.rest.component.portlet.model.PortletStatsResponse;
 import ok.admin.rest.response.BaseResponse;
 import ok.admin.rest.response.Result;
 import ok.admin.rest.response.v1.CustomSuccessResponse;
 import ok.admin.rest.response.v1.ErrorResponse;
+import ok.admin.rest.response.v1.SuccessResponse;
 import ok.admin.utils.MapBuilder;
 import one.comp.admin.AdminED;
+import one.comp.feed.portlet.PortletType;
 import one.util.StringUtil;
 
 @RestController
@@ -29,12 +31,12 @@ import one.util.StringUtil;
 @RequestMapping(value = "/api/portlet")
 public class PortletController {
     private final PortletService portletService;
-    private final DruidDataLoader dataLoader;
+    private final PortletStatService portletStatService;
 
     @Autowired
-    public PortletController(PortletService portletService, DruidDataLoader dataLoader) {
+    public PortletController(PortletService portletService, PortletStatService portletStatService) {
         this.portletService = portletService;
-        this.dataLoader = dataLoader;
+        this.portletStatService = portletStatService;
     }
 
     @JsonRequestMapping("/resolver/configs/{user-id}")
@@ -48,7 +50,6 @@ public class PortletController {
         } catch (Exception e) {
             return ErrorResponse.of(e.getMessage());
         }
-
     }
 
     @JsonRequestMapping("/getInserterConfig")
@@ -73,8 +74,13 @@ public class PortletController {
         if (StringUtil.isEmpty(host) || StringUtil.isEmpty(configName) || portletConfigRequest == null) {
             return ErrorResponse.of("Empty parameters", "incorrect-parameters");
         }
-        return CustomSuccessResponse.of()
-                .put("generatedConfig", portletService.generateFeedPortletConfig(host, configName, portletConfigRequest));
+
+        CustomSuccessResponse response = CustomSuccessResponse.of();
+        response.put("generatedConfig", portletService.generateFeedPortletConfig(host, configName, portletConfigRequest));
+        if (portletConfigRequest.isEnableConfig() && !StringUtil.isEmpty(portletConfigRequest.getUserId())) {
+            response.put("configName", portletService.enableInserterConfig(Long.parseLong(portletConfigRequest.getUserId()), host, configName));
+        }
+        return response;
     }
 
     @JsonRequestMapping(value = "/enableInserterConfig",  method = RequestMethod.POST)
@@ -86,13 +92,18 @@ public class PortletController {
         }
 
         try {
-            portletService.enableInserterConfig(userId, host, configName);
+            return new MapBuilder<String, Object>()
+                    .put("result", Result.Ok)
+                    .put("configName", portletService.enableInserterConfig(userId, host, configName))
+                    .toMap();
         } catch (ConfigurationNotFoundException e) {
             return errorMapResponse(e.getMessage());
         }
-        return new MapBuilder<String, Object>()
-                .put("result", Result.Ok)
-                .toMap();
+    }
+
+    @JsonRequestMapping("/stats")
+    public SuccessResponse<PortletStatsResponse> getPortletStats(@RequestParam(name = "type") String type) {
+        return SuccessResponse.of(portletStatService.loadPortletMetrics(PortletType.valueOf(type)));
     }
 
     @JsonRequestMapping(value = "/disableInserterConfig",  method = RequestMethod.POST)
@@ -110,6 +121,7 @@ public class PortletController {
         }
         return new MapBuilder<String, Object>()
                 .put("result", Result.Ok)
+                .put("message", "Configuration disabled successfully")
                 .toMap();
     }
 

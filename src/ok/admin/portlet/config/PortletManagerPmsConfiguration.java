@@ -18,9 +18,6 @@ public interface PortletManagerPmsConfiguration {
     @PropertyInfo(defaultValue = "one.app.portlets.inserter.config")
     String inserterConfigPropertyName();
 
-    @PropertyInfo(defaultValue = "one.app.portlets.inserter.lastSeenTargeting")
-    String lastSeenTargetingPropertyName();
-
     @PropertyInfo
     String username();
 

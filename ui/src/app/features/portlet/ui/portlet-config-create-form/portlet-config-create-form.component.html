@@ -1,66 +1,97 @@
-<!-- portlet-config-create-form.component.html -->
-<form [formGroup]="createConfigForm" (ngSubmit)="createConfig()" class="form-horizontal">
-    <div class="form-group">
-        <label for="host" class="col-sm-12">Host:</label>
-        <div class="col-sm-12">
-            <input
-                formControlName="host"
-                id="host"
-                type="text"
-                class="form-control"
-                placeholder="Введите host"
-                required
-            />
-        </div>
-    </div>
+<div class="config-create-container">
+    <div class="form-section">
+        <form [formGroup]="createConfigForm" (ngSubmit)="createConfig()" class="create-form">
+            <h3>Создание нового конфига</h3>
 
-    <div class="form-group">
-        <label for="configName" class="col-sm-12">Config Name:</label>
-        <div class="col-sm-12">
-            <input
-                formControlName="configName"
-                id="configName"
-                type="text"
-                class="form-control"
-                placeholder="Введите имя конфига"
-                required
-            />
-        </div>
-    </div>
+            <div class="form-group">
+                <label for="host">Host:</label>
+                <input
+                    formControlName="host"
+                    id="host"
+                    type="text"
+                    placeholder="Введите Host"
+                    required
+                />
+            </div>
 
-    <div class="form-group">
-        <label for="positions" class="col-sm-12">Список позиций (через запятую):</label>
-        <div class="col-sm-12">
-            <input
-                formControlName="positions"
-                id="positions"
-                type="text"
-                class="form-control"
-                placeholder="1,2,3"
-                required
-            />
-        </div>
-    </div>
+            <div class="form-group">
+                <label>Платформы:</label>
+                <div class="platforms-grid">
+                    <label *ngFor="let platform of availablePlatforms" class="platform-option">
+                        <input
+                            type="checkbox"
+                            [value]="platform"
+                            (change)="onPlatformChange($event)"
+                            [checked]="createConfigForm.value.platformTypes.includes(platform)"
+                        />
+                        <span class="checkmark"></span>
+                        {{ platform }}
+                    </label>
+                </div>
+            </div>
 
-    <div class="form-group">
-        <label for="portletTypes" class="col-sm-12">Список типов портлетов (через запятую):</label>
-        <div class="col-sm-12">
-            <input
-                formControlName="portletTypes"
-                id="portletTypes"
-                type="text"
-                class="form-control"
-                placeholder="type1,type2"
-                required
-            />
-        </div>
-    </div>
+            <div class="form-group">
+                <label for="configName">Имя конфига:</label>
+                <input
+                    formControlName="configName"
+                    id="configName"
+                    type="text"
+                    placeholder="Введите имя конфига"
+                    required
+                />
+            </div>
 
-    <div class="form-group">
-        <div class="col-sm-12 text-center">
-            <button type="submit" class="btn btn-primary" [disabled]="createConfigForm.invalid">
+            <div class="form-group">
+                <label for="positions">Позиции (через запятую):</label>
+                <input
+                    formControlName="positions"
+                    id="positions"
+                    type="text"
+                    placeholder="Например: -1,1"
+                    required
+                />
+            </div>
+
+            <div class="form-group">
+                <label for="portletTypes">Типы портлетов (через запятую):</label>
+                <input
+                    formControlName="portletTypes"
+                    id="portletTypes"
+                    type="text"
+                    placeholder="Например: DzenNews,Memories"
+                    required
+                />
+            </div>
+
+            <div class="form-group">
+                <label class="enable-toggle">
+                    <input
+                        type="checkbox"
+                        formControlName="enableConfig"
+                        (change)="onEnableConfigToggle()"
+                    />
+                    <span class="toggle-slider"></span>
+                    Включить конфиг после создания
+                </label>
+            </div>
+
+            <div class="form-group" *ngIf="createConfigForm.value.enableConfig">
+                <label for="userId">ID пользователя:</label>
+                <input
+                    formControlName="userId"
+                    id="userId"
+                    type="text"
+                    placeholder="Например: 601457556744"
+                />
+            </div>
+
+            <button type="submit" class="submit-btn" [disabled]="createConfigForm.invalid">
                 Создать конфиг
             </button>
-        </div>
+
+            <div *ngIf="message" class="result-message" [class.success]="success" [class.error]="!success">
+                {{ message }}
+            </div>
+        </form>
     </div>
-</form>
+</div>

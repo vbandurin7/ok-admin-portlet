@@ -1,8 +1,52 @@
-<!-- portlet-home.component.html -->
-<div class="text-center">
-    <h2>Главная страница</h2>
-=    <div class="button-group">
-        <a routerLink="/resolver-config" class="btn btn-primary">Получить конфиги по userId</a>
-        <a routerLink="/portlet-config-create-form" class="btn btn-secondary">Создать конфиг портлетов</a>
+<div class="home-container">
+    <header class="header">
+        <h1>Portlet Manager</h1>
+        <p>Центр управления конфигурациями и статистикой портлетов</p>
+    </header>
+
+    <div class="dashboard">
+        <div class="card" routerLink="/#/resolver-config">
+            <div class="card-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/>
+                </svg>
+            </div>
+            <h3>Конфиги пользователей</h3>
+            <p>Просмотр активных конфигураций для пользователей</p>
+        </div>
+
+        <div class="card" routerLink="/#/portlet-stats">
+            <div class="card-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 22V8h4v14H3zm7 0V2h4v20h-4zm7 0V14h4v8h-4z"/>
+                </svg>
+            </div>
+            <h3>Статистика портлетов</h3>
+            <p>Анализ показателей и эффективности портлетов</p>
+        </div>
+
+        <div class="card" routerLink="/#/portlet-config-toggle">
+            <div class="card-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17 7H7v2h10V7zm0 4H7v2h10v-2zm-5 4H7v2h5v-2z"/>
+                </svg>
+            </div>
+            <h3>Управление конфигами</h3>
+            <p>Включение/выключение конфигураций портлетов</p>
+        </div>
+
+        <div class="card" routerLink="/#/portlet">
+            <div class="card-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
+                </svg>
+            </div>
+            <h3>Создание конфигов</h3>
+            <p>Создание новых конфигураций портлетов</p>
+        </div>
     </div>
+
+    <footer class="footer">
+        <p>Portlet Manager v1.0</p>
+    </footer>
 </div>

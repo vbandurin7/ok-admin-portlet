@@ -1,16 +1,108 @@
-:host {
-    display: flex;
-    flex-direction: column;
-    align-items: start;
-    padding: 2rem;
-    gap: 2rem;
-}
+.config-control-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 800px;
+  margin: 0 auto;
 
-.control-card {
+  .form-section {
+    background: #f7f9fc;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+
+    h3 {
+      margin-top: 0;
+      color: #333;
+      font-size: 1.25rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .config-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+
+        label {
+          font-weight: 600;
+          color: #333;
+          font-size: 14px;
+        }
+
+        input {
+          padding: 0.5rem;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          font-size: 14px;
+          width: 100%;
+
+          &:focus {
+            border-color: #4285f4;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+          }
+        }
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+
+        button {
+          flex: 1;
+          padding: 0.5rem;
+          border: none;
+          border-radius: 4px;
+          font-size: 14px;
+          cursor: pointer;
+          transition: all 0.2s;
+
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+        }
+
+        .enable-btn {
+          background-color: #34a853;
+          color: white;
+
+          &:hover:not(:disabled) {
+            background-color: #2d9248;
+          }
+        }
+
+        .disable-btn {
+          background-color: #ea4335;
+          color: white;
+
+          &:hover:not(:disabled) {
+            background-color: #d33426;
+          }
+        }
+      }
+    }
+  }
+
+  .result-section {
+    background: #e8f0fe;
     padding: 1rem;
-    min-width: 8rem;
-}
+    border-radius: 8px;
+    border-left: 4px solid #4285f4;
 
-.control-button {
-    margin-top: 1rem;
+    .result-message {
+      color: #333;
+      text-align: center;
+      font-size: 14px;
+    }
+  }
 }

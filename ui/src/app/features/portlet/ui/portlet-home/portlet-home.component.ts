@@ -1,9 +1,15 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Component({
-    standalone: true,
-    selector: 'app-home',
-    templateUrl: './portlet-home.component.html',
-    styleUrls: ['./portlet-home.component.scss'],
+  selector: 'app-portlet-home',
+  templateUrl: './portlet-home.component.html',
+  styleUrls: ['./portlet-home.component.scss']
 })
-export class PortletHomeComponent {}
+export class PortletHomeComponent {
+  constructor(private router: Router) {}
+
+  navigateTo(path: string): void {
+    this.router.navigate([path]);
+  }
+}

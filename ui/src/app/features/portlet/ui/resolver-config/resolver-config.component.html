@@ -1,30 +1,49 @@
-<!-- resolver-config.component.html -->
-<form [formGroup]="resolverForm" (ngSubmit)="getResolverConfigs()" class="form-horizontal">
-    <div class="form-group">
-        <label for="userId" class="col-sm-12">Введите userId:</label>
-        <div class="col-sm-12">
-            <input
-                formControlName="userId"
-                id="userId"
-                type="number"
-                class="form-control"
-                placeholder="userId"
-                required
-            />
-        </div>
+<div class="configs-container">
+    <div class="form-section">
+        <form [formGroup]="resolverForm" (ngSubmit)="getResolverConfigs()" class="config-form">
+            <div class="form-group">
+                <label for="userId">ID пользователя:</label>
+                <input
+                    type="number"
+                    formControlName="userId"
+                    id="userId"
+                    placeholder="Введите ID пользователя"
+                >
+            </div>
+            <button type="submit" class="submit-btn">Получить конфиги</button>
+        </form>
     </div>
 
-    <div class="form-group">
-        <div class="col-sm-12 text-center">
-            <button type="submit" class="btn btn-primary" [disabled]="resolverForm.invalid">
-                Получить конфиги
-            </button>
+    <div class="results-section">
+        <div *ngIf="resolverConfigEntries.length > 0">
+            <h3>Конфиги для пользователя {{ resolverForm.value.userId }}</h3>
+            <div class="table-container">
+                <table class="configs-table">
+                    <thead>
+                        <tr>
+                            <th>Хост</th>
+                            <th>Конфиги</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let entry of resolverConfigEntries">
+                            <td>{{ entry.key }}</td>
+                            <td>
+                                <ul class="configs-list">
+                                    <li *ngFor="let value of entry.values; let i = index"
+                                        [class.active-config]="i === 0">
+                                        {{ value }}
+                                    </li>
+                                </ul>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div *ngIf="resolverConfigEntries.length === 0 && hasFetched" class="no-data">
+            Нет данных для отображения
         </div>
     </div>
-</form>
-
-<!-- Здесь показываем результат запроса -->
-<div *ngIf="resolverConfigs">
-    <h3>Конфиги для пользователя {{ resolverForm.value.userId }}:</h3>
-    <pre>{{ resolverConfigs | json }}</pre>
 </div>

@@ -5,6 +5,7 @@ import { PortletConfigApiService } from 'features/portlet/api';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { HttpParams } from '@angular/common/http';
+import { EnableConfigResponse } from 'features/portlet/models';
 
 @Component({
     standalone: true,
@@ -16,6 +17,7 @@ import { HttpParams } from '@angular/common/http';
 })
 export class PortletConfigToggleComponent {
     readonly apiService = inject(PortletConfigApiService);
+    resultMessage: string | null = null; // ← переменная для отображения результата
 
     toggleConfigForm = this.fb.group({
         userId: ['', [Validators.required, Validators.min(1)]],
@@ -25,7 +27,6 @@ export class PortletConfigToggleComponent {
 
     constructor(private fb: FormBuilder) {}
 
-    // Метод для включения конфигурации
     enableConfig() {
         const { userId, host, configName } = this.toggleConfigForm.value;
 
@@ -35,15 +36,15 @@ export class PortletConfigToggleComponent {
             .set('configName', configName);
 
         this.apiService.enableInserterConfig(queryParams)
-            .then((data) => {
-                console.log('Конфиг включён:', data);
+            .then((response: EnableConfigResponse) => {
+                const enabledName = response.configName || configName;
+                this.resultMessage = `Конфигурация успешно включена под именем "${enabledName}".`;
             })
             .catch((err) => {
-                console.error('Ошибка при включении конфига:', err);
+                this.resultMessage = `Ошибка при включении: ${err.message || err}`;
             });
     }
 
-    // Метод для выключения конфигурации
     disableConfig() {
         const { userId, host, configName } = this.toggleConfigForm.value;
 
@@ -53,11 +54,11 @@ export class PortletConfigToggleComponent {
             .set('configName', configName);
 
         this.apiService.disableInserterConfig(queryParams)
-            .then((data) => {
-                console.log('Конфиг выключен:', data);
+            .then(() => {
+                this.resultMessage = `Конфигурация "${configName}" успешно выключена.`;
             })
             .catch((err) => {
-                console.error('Ошибка при выключении конфига:', err);
+                this.resultMessage = `Ошибка при выключении: ${err.message || err}`;
             });
     }
 }

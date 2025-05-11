@@ -1,0 +1,88 @@
+<div class="portlet-stats">
+    <div class="form-section">
+        <form (ngSubmit)="fetchStats()" #form="ngForm" class="stats-form">
+            <div class="form-group">
+                <label for="portletType">Тип портлета:</label>
+                <input
+                    id="portletType"
+                    name="portletType"
+                    class="form-control"
+                    [(ngModel)]="portletType"
+                    required
+                />
+            </div>
+            <button type="submit" class="btn btn-primary" [disabled]="isLoading()">
+                Загрузить статистику
+            </button>
+        </form>
+
+        <div *ngIf="showButtons()" class="time-period-buttons">
+            <button type="button" class="period-btn" (click)="toggleLastDayStats()" [class.active]="showLastDayStats()">
+                Данные за день
+            </button>
+            <button type="button" class="period-btn" (click)="toggleLastWeekStats()" [class.active]="showLastWeekStats()">
+                Данные за неделю
+            </button>
+        </div>
+
+        <div *ngIf="isLoading()" class="alert alert-info">Загрузка...</div>
+        <div *ngIf="error()" class="alert alert-danger">{{ error() }}</div>
+        <div *ngIf="loaded() && !error() && !lastDayStats.length && !lastWeekStats.length" class="no-data">
+            Нет данных для отображения
+        </div>
+    </div>
+
+    <div class="results-section">
+        <div *ngIf="showLastDayStats() && lastDayStats.length">
+            <h3>Статистика за последний день</h3>
+            <div class="table-container">
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>Время</th>
+                            <th>Показы</th>
+                            <th>Клики</th>
+                            <th>CTR</th>
+                            <th>Пропуски</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let stat of lastDayStats">
+                            <td>{{ stat.timestampOrDay | date:'HH:mm' }}</td>
+                            <td>{{ stat.impressions | number }}</td>
+                            <td>{{ stat.clicks | number }}</td>
+                            <td>{{ stat.ctr | number: '1.2-2' }}%</td>
+                            <td>{{ stat.skips | number }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div *ngIf="showLastWeekStats() && lastWeekStats.length">
+            <h3>Статистика за неделю</h3>
+            <div class="table-container">
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>День</th>
+                            <th>Показы</th>
+                            <th>Клики</th>
+                            <th>CTR</th>
+                            <th>Пропуски</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let stat of lastWeekStats">
+                            <td>{{ stat.timestampOrDay | date:'dd.MM' }}</td>
+                            <td>{{ stat.impressions | number }}</td>
+                            <td>{{ stat.clicks | number }}</td>
+                            <td>{{ stat.ctr | number: '1.2-2' }}%</td>
+                            <td>{{ stat.skips | number }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

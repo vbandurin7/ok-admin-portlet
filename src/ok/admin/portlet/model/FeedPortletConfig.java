@@ -1,27 +1,30 @@
 package ok.admin.portlet.model;
 
+import java.util.EnumMap;
+import java.util.List;
 import java.util.NavigableMap;
+import java.util.stream.Collectors;
 
 public class FeedPortletConfig {
-    public static Integer CHUNK_SIZE_DEFAULT = 28;
+    public static final Integer CHUNK_SIZE_DEFAULT = 28;
 
-    private final PlatformPortletConfig webConfig;
-    private final PlatformPortletConfig mobConfig;
-    private final PlatformPortletConfig apiConfig;
-    private final PlatformPortletConfig androidConfig;
+    private final EnumMap<PlatformType, PlatformPortletConfig> configs = new EnumMap<>(PlatformType.class);
 
-    public FeedPortletConfig(NavigableMap<Integer, PortletByPosition> portletsByPosition) {
-        this.webConfig = new PlatformPortletConfig(PlatformType.WEB, CHUNK_SIZE_DEFAULT, portletsByPosition);
-        this.mobConfig = new PlatformPortletConfig(PlatformType.MOB, CHUNK_SIZE_DEFAULT, portletsByPosition);
-        this.apiConfig = new PlatformPortletConfig(PlatformType.API, CHUNK_SIZE_DEFAULT, portletsByPosition);
-        this.androidConfig = new PlatformPortletConfig(PlatformType.ANDROID, CHUNK_SIZE_DEFAULT, portletsByPosition);
+    public FeedPortletConfig(NavigableMap<Integer, PortletByPosition> portletsByPosition, List<PlatformType> platformTypes) {
+        for (PlatformType platform : platformTypes) {
+            configs.put(platform, new PlatformPortletConfig(platform, CHUNK_SIZE_DEFAULT, portletsByPosition));
+        }
+    }
+
+    public PlatformPortletConfig getConfig(PlatformType platform) {
+        return configs.get(platform);
     }
 
     @Override
     public String toString() {
-        return webConfig + "\n"
-                + mobConfig + "\n"
-                + apiConfig + "\n"
-                + androidConfig;
+        return configs.values().stream()
+                .map(Object::toString)
+                .collect(Collectors.joining("\n"));
     }
 }
+
